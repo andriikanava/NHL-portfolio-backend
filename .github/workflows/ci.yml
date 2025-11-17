@@ -29,7 +29,7 @@ jobs:
         run: |
           ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
             cd $APP_DIR
-            ls
+            cd NHL-portfolio-backend
             docker-compose down
             git reset --hard
             git pull origin main
