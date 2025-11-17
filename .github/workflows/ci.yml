@@ -30,6 +30,8 @@ jobs:
           ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
             cd $APP_DIR
             docker-compose down
+            git reset --hard
+            git pull origin main
             docker-compose pull || true
             docker-compose build
             docker-compose up -d
