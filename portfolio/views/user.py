@@ -19,7 +19,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 )
 class UserViewSet(viewsets.ModelViewSet):
     """
-    CRUD для User:
+    CRUD for User:
     - list: admin only
     - retrieve: admin or self
     - create: registration (AllowAny) — return tokens

@@ -24,7 +24,7 @@ class ProjectViewSet(
     GenericViewSet,
 ):
     """
-    Полный CRUD для проекта с ручной логикой.
+    Project CRUD
     """
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
