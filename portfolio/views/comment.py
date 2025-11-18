@@ -2,21 +2,26 @@ from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins
-from core.models import Project
-from portfolio.serializers import ProjectSerializer
+from core.models import Comment
+from portfolio.serializers import CommentSerializer
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
+class IsOwnerOrAdmin(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return request.user.is_staff or obj.user == request.user
+
+
 @extend_schema_view(
-    list=extend_schema(tags=["Projects"]),
-    retrieve=extend_schema(tags=["Projects"]),
-    create=extend_schema(tags=["Projects"]),
-    update=extend_schema(tags=["Projects"]),
-    partial_update=extend_schema(tags=["Projects"]),
-    destroy=extend_schema(tags=["Projects"]),
+    list=extend_schema(tags=["Comments"]),
+    retrieve=extend_schema(tags=["Comments"]),
+    create=extend_schema(tags=["Comments"]),
+    update=extend_schema(tags=["Comments"]),
+    partial_update=extend_schema(tags=["Comments"]),
+    destroy=extend_schema(tags=["Comments"]),
 )
-class ProjectViewSet(
+class CommentViewSet(
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
     mixins.CreateModelMixin,
@@ -25,11 +30,11 @@ class ProjectViewSet(
     GenericViewSet,
 ):
     """
-    Project CRUD
+    Comments CRUD
     """
-    queryset = Project.objects.all()
-    serializer_class = ProjectSerializer
-
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    # permission_classes = [permissions.IsAuthenticated]
 
     def get_permissions(self):
         """
@@ -38,14 +43,11 @@ class ProjectViewSet(
         if self.action in ['list', 'retrieve']:
             return [AllowAny()]
         elif self.action in ['update', 'partial_update', 'destroy', 'create']:
-            return [IsAuthenticated()]
+            return [IsAuthenticated(), IsOwnerOrAdmin()]
         return [IsAuthenticated()]
 
     def create(self, request, *args, **kwargs):
         data = request.data
-        if not data.get('title'):
-            return Response({'error': 'Title is required'}, status=status.HTTP_400_BAD_REQUEST)
-
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
