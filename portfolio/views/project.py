@@ -5,8 +5,16 @@ from rest_framework import mixins
 from core.models import Project
 from portfolio.serializers import ProjectSerializer
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import extend_schema, extend_schema_view
 
-
+@extend_schema_view(
+    list=extend_schema(tags=["Projects"]),
+    retrieve=extend_schema(tags=["Projects"]),
+    create=extend_schema(tags=["Projects"]),
+    update=extend_schema(tags=["Projects"]),
+    partial_update=extend_schema(tags=["Projects"]),
+    destroy=extend_schema(tags=["Projects"]),
+)
 class ProjectViewSet(
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
@@ -22,10 +30,8 @@ class ProjectViewSet(
     serializer_class = ProjectSerializer
     # permission_classes = [permissions.IsAuthenticated]
 
-    # Пример кастомной логики при создании
     def create(self, request, *args, **kwargs):
         data = request.data
-        # Пример: запретить пустой title
         if not data.get('title'):
             return Response({'error': 'Title is required'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -34,7 +40,7 @@ class ProjectViewSet(
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    # Пример кастомной логики при обновлении
+
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=False)
@@ -49,7 +55,6 @@ class ProjectViewSet(
         serializer.save()
         return Response(serializer.data)
 
-    # Пример кастомной логики при удалении
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.delete()
