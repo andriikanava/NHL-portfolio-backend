@@ -14,7 +14,7 @@ services:
 
   web:
     build: .
-    command: sh -c "sleep 10 && python manage.py runserver 0.0.0.0:8000"
+    command: sh -c "sleep 10 && gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 4 --threads 4"
     volumes:
       - .:/app
     ports:
