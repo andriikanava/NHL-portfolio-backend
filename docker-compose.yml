@@ -14,7 +14,7 @@ services:
 
   web:
     build: .
-    command: sh -c "sleep 10 && gunicorn project.wsgi:application --workers 3 --threads 4"
+    command: sh -c "sleep 10 && gunicorn config.wsgi:application --workers 3 --threads 4"
     volumes:
       - .:/app
     ports:
