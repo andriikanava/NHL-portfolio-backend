@@ -1,3 +1,4 @@
 from .project_serializer import ProjectSerializer
 from .user import UserSerializer, UserCreateSerializer, UserResponseWithTokenSerializer
 from .comment import CommentSerializer
+from .media_serilaizer import UploadedFileSerializer
