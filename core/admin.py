@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Project, User, Comment
+from .models import Project, User, Comment, UploadedFile
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
@@ -15,3 +15,8 @@ class UserAdmin(admin.ModelAdmin):
 class UserAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'email', 'comment')
     search_fields = ("name",)
+
+@admin.register(UploadedFile)
+class UploadedAdmin(admin.ModelAdmin):
+    list_display = ('id', 'file', 'original_name')
+    search_fields = ('original_name',)
