@@ -14,13 +14,22 @@ services:
 
   web:
     build: .
+    container_name: backend
     command: sh -c "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 4 --threads 2"
-    ports:
-      - "8000:8000"
+    environment:
+      - VIRTUAL_HOST=api.knv.co.ua
+      - LETSENCRYPT_HOST=api.knv.co.ua
+      - LETSENCRYPT_EMAIL=kanava.andrey23@gmail.com
+    expose:
+      - "8000"
     depends_on:
       - db
-    env_file:
-      - .env
+    networks:
+      - proxy
 
 volumes:
   postgres_data:
+
+networks:
+  proxy:
+    external: true
