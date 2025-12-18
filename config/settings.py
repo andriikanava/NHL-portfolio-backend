@@ -167,3 +167,9 @@ ALLOWED_HOSTS = config('DJANGO_ALLOWED_HOSTS').split(' ')
 APPEND_SLASH = False
 
 AUTH_USER_MODEL = 'core.User'
+
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://api.knv.co.ua",
+    "https://knv.co.ua",
+]
