@@ -1,37 +1,79 @@
 # api/serializers.py
-from rest_framework import serializers
-from core.models import UploadedFile
 import os
+import mimetypes
+from rest_framework import serializers
+from core.models import UploadedFile, Project
+
 
 class UploadedFileSerializer(serializers.ModelSerializer):
+    # чтобы можно было прикреплять файл к проекту при создании
+    project = serializers.PrimaryKeyRelatedField(queryset=Project.objects.all())
+
     class Meta:
         model = UploadedFile
-        fields = ["id", "file", "original_name", "file_type"]
+        fields = ["id", "project", "file", "original_name", "file_type"]
         read_only_fields = ["original_name", "file_type"]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Lazy import, чтобы не ловить циклические импорты
+        from core.models import Project
+        self.fields["project"].queryset = Project.objects.all()
+
     def validate_file(self, value):
-        if value.size > 3 * 1024 * 1024:
-            raise serializers.ValidationError("File size must not exceed 3MB")
+        # 25 MB — адекватно для портфолио, поменяй если хочешь
+        max_size = 25 * 1024 * 1024
+        if value.size > max_size:
+            raise serializers.ValidationError("File size must not exceed 25MB")
 
-        filename = value.name
-        if len(filename) > 50:
-            raise serializers.ValidationError("Filename must not exceed 50 characters")
+        filename = value.name or ""
+        if len(filename) > 255:
+            raise serializers.ValidationError("Filename is too long (max 255 chars)")
 
-        if filename == filename.lower():
-            raise serializers.ValidationError("Filename must contain at least one uppercase letter")
+        # Разрешённые расширения под требования (PDF, Office, картинки, txt/zip по желанию)
+        allowed_exts = {
+            ".pdf",
+            ".doc", ".docx",
+            ".ppt", ".pptx",
+            ".xls", ".xlsx",
+            ".odt", ".ods", ".odp",
+            ".png", ".jpg", ".jpeg", ".gif", ".webp",
+            ".txt",
+            ".zip",
+        }
 
         ext = os.path.splitext(filename)[1].lower()
-        allowed = [".png", ".jpg", ".jpeg", ".gif"]
-        if ext not in allowed:
-            raise serializers.ValidationError("Invalid file type")
+        if not ext:
+            raise serializers.ValidationError("File must have an extension (e.g. .pdf)")
+
+        if ext not in allowed_exts:
+            raise serializers.ValidationError(
+                f"Unsupported file type '{ext}'. Allowed: {', '.join(sorted(allowed_exts))}"
+            )
+
+        # Мягкая проверка mime (не 100% защита, но норм как дополнительная)
+        guessed_mime, _ = mimetypes.guess_type(filename)
+        if guessed_mime is None:
+            # не валим загрузку, просто пропускаем
+            return value
+
+        blocked_mimes = {
+            "application/x-msdownload",  # exe
+            "application/x-sh",          # shell scripts
+        }
+        if guessed_mime in blocked_mimes:
+            raise serializers.ValidationError("This file type is not allowed")
 
         return value
 
     def create(self, validated_data):
-        file = validated_data["file"]
-        ext = file.name.split(".")[-1].lower()
+        f = validated_data["file"]
+        filename = os.path.basename(f.name)
+        ext = os.path.splitext(filename)[1].lower().lstrip(".")
         return UploadedFile.objects.create(
-            file=file,
-            original_name=file.name,
+            project=validated_data["project"],
+            file=f,
+            original_name=filename,
             file_type=ext,
         )

@@ -6,7 +6,8 @@ from core.models import Project
 from portfolio.serializers import ProjectSerializer
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
+from core.permissions import IsAdmin, CanViewProject
 
 @extend_schema_view(
     list=extend_schema(tags=["Projects"]),
@@ -27,19 +28,25 @@ class ProjectViewSet(
     """
     Project CRUD
     """
-    queryset = Project.objects.all()
     serializer_class = ProjectSerializer
 
 
+    def get_queryset(self):
+        qs = Project.objects.all()
+        user = self.request.user
+
+        if not user.is_authenticated:
+            return qs.none()
+
+        if user.is_staff:
+            return qs
+
+        return qs.filter(allowed_users=user)
+
     def get_permissions(self):
-        """
-        Назначаем разрешения в зависимости от действия.
-        """
-        if self.action in ['list', 'retrieve']:
-            return [AllowAny()]
-        elif self.action in ['update', 'partial_update', 'destroy', 'create']:
-            return [IsAuthenticated()]
-        return [IsAuthenticated()]
+        if self.action in ["list", "retrieve"]:
+            return [IsAuthenticated(), CanViewProject()]
+        return [IsAdmin()]
 
     def create(self, request, *args, **kwargs):
         data = request.data

@@ -6,7 +6,7 @@ from core.models import Comment
 from portfolio.serializers import CommentSerializer
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from core.permissions import IsAdmin
 
 class IsOwnerOrAdmin(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
@@ -32,15 +32,13 @@ class CommentViewSet(
     """
     Comments CRUD
     """
-    queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    # permission_classes = [permissions.IsAuthenticated]
+    def get_queryset(self):
+        # админ видит все комментарии
+        return Comment.objects.select_related("project", "user")
 
     def get_permissions(self):
-        """
-        Назначаем разрешения в зависимости от действия.
-        """
-        return [IsAuthenticated()]
+        return [IsAdmin()]
 
     def create(self, request, *args, **kwargs):
         data = request.data

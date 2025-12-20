@@ -3,7 +3,6 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from core.models import User
 from portfolio.serializers import UserSerializer, UserCreateSerializer, UserResponseWithTokenSerializer
-from core.permission import IsSelfOrAdmin
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_spectacular.utils import extend_schema, extend_schema_view
