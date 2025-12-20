@@ -1,18 +1,13 @@
 from django.db import models
 from .base import BaseModel
+from .project import Project
+from .user import User
 
 class Comment(BaseModel):
-    ROLE_CHOICE = [
-        ("student", "Student"),
-        ("teacher", "Teacher")
-    ]
-
-    name = models.CharField(max_length=255, null=False, blank=False)
-    email = models.EmailField(null=False, blank=False)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
     comment = models.TextField(null=False, blank=False)
-    role = models.CharField(choices=ROLE_CHOICE, null=False, blank=False)
-    notify = models.BooleanField(null=False, blank=False, default=False)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="comments")
 
 
     def __str__(self):
-        return self.name
+        return f"{self.name} → {self.project}"

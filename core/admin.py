@@ -13,8 +13,8 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(Comment)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'email', 'comment')
-    search_fields = ("name",)
+    list_display = ('id', 'user', 'project', 'comment')
+    search_fields = ("user",)
 
 @admin.register(UploadedFile)
 class UploadedAdmin(admin.ModelAdmin):

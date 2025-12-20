@@ -40,10 +40,6 @@ class CommentViewSet(
         """
         Назначаем разрешения в зависимости от действия.
         """
-        if self.action in ['list', 'retrieve', 'create']:
-            return [AllowAny()]
-        elif self.action in ['update', 'partial_update', 'destroy']:
-            return [IsAuthenticated(), IsOwnerOrAdmin()]
         return [IsAuthenticated()]
 
     def create(self, request, *args, **kwargs):

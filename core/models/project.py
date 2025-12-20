@@ -1,32 +1,26 @@
+from django.conf import settings
 from django.db import models
 from .base import BaseModel
+from .user import User
 
 class Project(BaseModel):
-    PERIOD_CHOICES = [
-        (1, "1 period"),
-        (2, "2 period"),
-        (3, "3 period"),
-        (4, "4 period"),
-    ]
-
-    WEEK_CHOICES = [
-        (1, "Week 1"),
-        (2, "Week 2"),
-        (3, "Week 3"),
-        (4, "Week 4"),
-        (5, "Week 5"),
-        (6, "Week 6"),
-        (7, "Week 7"),
-        (8, "Week 8"),
-        (9, "Week 9"),
-    ]
+    YEAR_CHOICES = [(1, "Year 1"), (2, "Year 2"), (3, "Year 3"), (4, "Year 4")]
 
     title = models.CharField(max_length=255)
     description = models.TextField()
     url = models.URLField(blank=True, null=True)
     source_url = models.URLField(blank=True, null=True)
-    period = models.IntegerField(blank=True, null=True, choices=PERIOD_CHOICES)
-    week = models.IntegerField(blank=True, null=True, choices=WEEK_CHOICES)
+
+    year = models.IntegerField(choices=YEAR_CHOICES)
+    module = models.CharField(max_length=255)
+
+    private = models.BooleanField(default=False)
+
+    allowed_users = models.ManyToManyField(
+        User,
+        blank=True,
+        related_name="allowed_projects"
+    )
 
     def __str__(self):
         return self.title
