@@ -34,16 +34,24 @@ class MediaViewSet(
 
     serializer_class = UploadedFileSerializer
     def get_queryset(self):
-        qs = UploadedFile.objects.select_related("project")
         user = self.request.user
+        qs = UploadedFile.objects.select_related("project")
 
-        if not user.is_authenticated:
+        # только верифицированные/админ
+        if not user.is_authenticated or not getattr(user, "verify", False):
             return qs.none()
 
-        if user.is_staff:
-            return qs
+        # access filter (админ — всё, visitor — только доступные проекты)
+        if not user.is_staff:
+            qs = (qs.filter(project__private=False) | qs.filter(project__allowed_users=user)).distinct()
 
-        return qs.filter(project__allowed_users=user)
+        # ✅ фильтр по ?project=<id>
+        project_id = self.request.query_params.get("project")
+        if project_id is not None:
+            # опционально можно проверить что это число
+            qs = qs.filter(project_id=project_id)
+
+        return qs
 
     def get_permissions(self):
         if self.action in ["list", "retrieve"]:
