@@ -6,6 +6,7 @@ from portfolio.serializers import UserSerializer, UserCreateSerializer, UserResp
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_spectacular.utils import extend_schema, extend_schema_view
+from core.permissions import IsSelfOrAdmin
 
 @extend_schema_view(
     list=extend_schema(tags=["Users"]),
