@@ -45,7 +45,7 @@ class ProjectViewSet(
 
     def get_permissions(self):
         if self.action in ["list", "retrieve"]:
-            return [IsAuthenticated(), CanViewProject()]
+            return [CanViewProject()]
         return [IsAdmin()]
 
     def create(self, request, *args, **kwargs):

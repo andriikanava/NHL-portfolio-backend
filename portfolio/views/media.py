@@ -55,7 +55,7 @@ class MediaViewSet(
 
     def get_permissions(self):
         if self.action in ["list", "retrieve"]:
-            return [IsAuthenticated(), CanViewFile()]
+            return [CanViewFile()]
         return [IsAdmin()]
 
     def create(self, request, *args, **kwargs):
