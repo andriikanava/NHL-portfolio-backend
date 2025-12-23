@@ -16,8 +16,6 @@ class CanViewProject(BasePermission):
     """
     def has_object_permission(self, request, view, obj):
         user = request.user
-        if not user or not user.is_authenticated or not user.verify:
-            return False
         if user.is_staff or not obj.private:
             return True
         return obj.allowed_users.filter(id=user.id).exists()
@@ -30,8 +28,6 @@ class CanViewFile(BasePermission):
     """
     def has_object_permission(self, request, view, obj):
         user = request.user
-        if not user or not user.is_authenticated or not user.verify:
-            return False
         if user.is_staff or not obj.project.private:
             return True
         return obj.project.allowed_users.filter(id=user.id).exists()
