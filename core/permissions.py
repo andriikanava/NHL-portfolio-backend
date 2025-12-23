@@ -16,8 +16,11 @@ class CanViewProject(BasePermission):
     """
     def has_object_permission(self, request, view, obj):
         user = request.user
+        print("***** OBJ PRIVATE: ", obj.private)
         if user.is_staff or not obj.private:
+            print("***** TRUE")
             return True
+        print("***** FALSE")
         return obj.allowed_users.filter(id=user.id).exists()
 
 
