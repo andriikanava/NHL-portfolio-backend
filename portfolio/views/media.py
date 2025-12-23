@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.permissions import IsAuthenticated
 from core.permissions import IsAdmin, CanViewFile
+from django.db.models import Q
 
 class IsOwnerOrAdmin(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
@@ -33,25 +34,31 @@ class MediaViewSet(
     """
 
     serializer_class = UploadedFileSerializer
+
+
     def get_queryset(self):
         user = self.request.user
         qs = UploadedFile.objects.select_related("project")
 
-        # только верифицированные/админ
-        if not user.is_authenticated or not getattr(user, "verify", False):
-            return qs.none()
-
-        # access filter (админ — всё, visitor — только доступные проекты)
-        if not user.is_staff:
-            qs = (qs.filter(project__private=False) | qs.filter(project__allowed_users=user)).distinct()
-
-        # ✅ фильтр по ?project=<id>
         project_id = self.request.query_params.get("project")
-        if project_id is not None:
-            # опционально можно проверить что это число
+        if project_id:
             qs = qs.filter(project_id=project_id)
 
-        return qs
+        # ✅ Гость: видит только файлы публичных проектов
+        if not user.is_authenticated:
+            return qs.filter(project__private=False)
+
+        # ✅ Если ты хочешь требовать verify — делай это тут
+        if not getattr(user, "verify", False):
+            # можно разрешить только public, а private запретить
+            return qs.filter(project__private=False)
+
+        # ✅ Админ: видит всё
+        if user.is_staff:
+            return qs
+
+        # ✅ Обычный юзер: public + private где он в allowed_users
+        return qs.filter(Q(project__private=False) | Q(project__allowed_users=user)).distinct()
 
     def get_permissions(self):
         if self.action in ["list", "retrieve"]:

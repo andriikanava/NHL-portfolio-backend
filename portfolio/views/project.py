@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.permissions import IsAuthenticated
 from core.permissions import IsAdmin, CanViewProject
+from django.db.models import Q
 
 @extend_schema_view(
     list=extend_schema(tags=["Projects"]),
@@ -30,18 +31,20 @@ class ProjectViewSet(
     """
     serializer_class = ProjectSerializer
 
-
     def get_queryset(self):
         qs = Project.objects.all()
         user = self.request.user
 
+        # гость -> только публичные
         if not user.is_authenticated:
-            return qs.none()
+            return qs.filter(private=False)
 
+        # staff -> всё
         if user.is_staff:
             return qs
 
-        return qs.filter(allowed_users=user)
+        # обычный юзер -> public + разрешённые
+        return qs.filter(Q(private=False) | Q(allowed_users=user)).distinct()
 
     def get_permissions(self):
         if self.action in ["list", "retrieve"]:
