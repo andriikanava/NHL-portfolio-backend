@@ -41,6 +41,8 @@ class UploadedFileSerializer(serializers.ModelSerializer):
             ".png", ".jpg", ".jpeg", ".gif", ".webp",
             ".txt",
             ".zip",
+            ".ino",
+            ".h"
         }
 
         ext = os.path.splitext(filename)[1].lower()
